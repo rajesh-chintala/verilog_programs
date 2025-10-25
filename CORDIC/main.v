@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module stage(
+module main(
 input clk,reset,
 input signed [29:0]g,
 output reg signed [29:0]z_out,
