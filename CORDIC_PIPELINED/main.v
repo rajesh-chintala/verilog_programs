@@ -52,6 +52,75 @@ stage s10( 4'd11, 32'd524288 , x[10], y[10], z[10], t[10], xn[10], yn[10], zn[10
 stage s11( 4'd12, 32'd262144 , x[11], y[11], z[11], t[11], xn[11], yn[11], zn[11], tn[11]);
 
 always@(posedge clk or negedge reset) begin
+if(!reset) begin
+t[0]<=0;
+t[1] <= 0;
+t[2] <= 0;
+t[3] <= 0;
+t[4] <= 0;
+t[5] <= 0;
+t[6] <= 0;
+t[7] <= 0;
+t[8] <= 0;
+t[9] <= 0;
+t[10] <= 0;
+t[11] <= 0;
+
+//sign bit propogation
+sign[0] <= 0;
+sign[1] <= 0;
+sign[2] <= 0;
+sign[3] <= 0;
+sign[4] <= 0;
+sign[5] <= 0;
+sign[6] <= 0;
+sign[7] <= 0;
+sign[8] <= 0;
+sign[9] <= 0;
+sign[10] <= 0;
+sign[11] <= 0;
+
+x[0]<=32'd764356231;
+x[1] <= 0;
+x[2] <= 0;
+x[3] <= 0;
+x[4] <= 0;
+x[5] <= 0;
+x[6] <= 0;
+x[7] <= 0;
+x[8] <= 0;
+x[9] <= 0;
+x[10] <= 0;
+x[11] <= 0;
+
+y[0]<=32'd764356231;
+y[1] <= 0;
+y[2] <= 0;
+y[3] <= 0;
+y[4] <= 0;
+y[5] <= 0;
+y[6] <= 0;
+y[7] <= 0;
+y[8] <= 0;
+y[9] <= 0;
+y[10] <= 0;
+y[11] <= 0;
+
+z[0]<=32'd843314857;
+z[1] <= 0;
+z[2] <= 0;
+z[3] <= 0;
+z[4] <= 0;
+z[5] <= 0;
+z[6] <= 0;
+z[7] <= 0;
+z[8] <= 0;
+z[9] <= 0;
+z[10] <= 0;
+z[11] <= 0;
+end 
+
+else begin
 t[0]<=t0;
 t[1] <= tn[0];
 t[2] <= tn[1];
@@ -64,6 +133,20 @@ t[8] <= tn[7];
 t[9] <= tn[8];
 t[10] <= tn[9];
 t[11] <= tn[10];
+
+//sign bit propogation
+sign[0] <= g[31];
+sign[1] <= sign[0];
+sign[2] <= sign[1];
+sign[3] <= sign[2];
+sign[4] <= sign[3];
+sign[5] <= sign[4];
+sign[6] <= sign[5];
+sign[7] <= sign[6];
+sign[8] <= sign[7];
+sign[9] <= sign[8];
+sign[10] <= sign[9];
+sign[11] <= sign[10];
 
 x[0]<=32'd764356231;
 x[1] <= xn[0];
@@ -103,16 +186,10 @@ z[8] <= zn[7];
 z[9] <= zn[8];
 z[10] <= zn[9];
 z[11] <= zn[10];
-
+end
 end
 
-always@(z[11])
-begin
-    if(g[31]==1) begin
-        z_out <= (~z[11]) + 1;
-    end
-    else z_out <= z[11];
-end
+assign z_out = (sign[11]) ? (~z[11]+1) : z[11];
 
 always@(posedge clk)
 begin
