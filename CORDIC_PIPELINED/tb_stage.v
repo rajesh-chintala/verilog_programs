@@ -23,12 +23,12 @@
 
 module tb_stage();
 reg clk,reset;
-reg [31:0]g;
-wire [31:0]z_out;
-wire [7:0]an;
-wire [7:0]c;
+reg [19:0]g;
+wire [19:0]z_out;
+//wire [7:0]an;
+//wire [7:0]c;
 
-main dut(.clk(clk),.reset(reset),.g(g),.z_out(z_out),.an(an), .c(c));
+main dut(.clk(clk),.reset(reset),.g(g),.z_out(z_out));//,.an(an), .c(c));
 
 initial begin
     clk = 1'b0;
@@ -36,6 +36,27 @@ initial begin
 end
 
 initial begin
+    reset = 1'b1;
+    #10 reset = 1'b0;
+    #10 reset = 1'b1;
+    g = 20'd786432;
+	#10 g = 20'd795365;
+	#10 g = 20'd821553;
+	#10 g = 20'd863213;
+	#10 g = 20'd917505;
+	#10 g = 20'd980729;
+	#10 g = 20'd0;
+	#10 g = 20'd67848;
+	#10 g = 20'd131072;
+	#10 g = 20'd185364;
+	#10 g = 20'd227024;
+	#10 g = 20'd253212;
+	#10 g = 20'd262144;
+	#10 g = 20'd1;
+	end
+endmodule
+
+/*
  	g = 32'd3221225472;
 	#10 g = 32'd3257812338;
 	#10 g = 32'd3365079600;
@@ -50,5 +71,4 @@ initial begin
 	#10 g = 32'd1037154959;
 	#10 g = 32'd1073741824;
 	#10 g = 32'd1;
-	end
-endmodule
+*/
