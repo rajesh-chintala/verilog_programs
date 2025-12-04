@@ -32,3 +32,10 @@ rad to degree
 
 <img width="1640" height="882" alt="image" src="https://github.com/user-attachments/assets/328d248f-64c5-48b9-ad15-e0a031a975c6" />
 <img width="1644" height="882" alt="image" src="https://github.com/user-attachments/assets/42c422ad-e7e5-4377-b0b4-6184805ff707" />
+
+block design  
+<img width="1675" height="927" alt="image" src="https://github.com/user-attachments/assets/ea78faea-9251-42f9-a2f5-15cb9e1766e2" />
+<img width="1644" height="885" alt="image" src="https://github.com/user-attachments/assets/4a791c55-d1ed-4d01-9a67-f5f83e84a2b7" />
+<img width="1643" height="884" alt="image" src="https://github.com/user-attachments/assets/de6314a1-010c-4c2b-ac16-71924ba361a2" />
+<img width="1637" height="877" alt="image" src="https://github.com/user-attachments/assets/69324eac-dcd8-46ba-99ed-5a31cf52c7ec" />
+<img width="1638" height="880" alt="image" src="https://github.com/user-attachments/assets/ec68c700-345d-4ed7-99ca-4490e0083c1b" />
