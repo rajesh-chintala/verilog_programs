@@ -27,9 +27,8 @@
 clock divider  
 <img width="1641" height="883" alt="image" src="https://github.com/user-attachments/assets/db63e4ed-32cf-49cc-9cfd-277514ec8b71" />
 <img width="1640" height="879" alt="image" src="https://github.com/user-attachments/assets/3668f3a5-92b0-4a41-847f-a43c9cf7a032" />
+rad to degree
+<img width="1641" height="880" alt="image" src="https://github.com/user-attachments/assets/73a853f6-1ee5-4aad-8c8d-168e550971d1" />
 
 <img width="1640" height="882" alt="image" src="https://github.com/user-attachments/assets/328d248f-64c5-48b9-ad15-e0a031a975c6" />
 <img width="1644" height="882" alt="image" src="https://github.com/user-attachments/assets/42c422ad-e7e5-4377-b0b4-6184805ff707" />
-
-
-
