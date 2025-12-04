@@ -24,8 +24,8 @@ module stage(
 //wire signed [31:0]t0;   //absolute value of g, initial value of t
 input clk,reset,
 input wire [3:0] i,
-input wire signed [19:0]a,x,y,z,t,
-input sign,   // a for change in angle for each iteration i.e., tan'(2^-i)
+input wire signed [19:0]a,x,y,z,t,// a for change in angle for each iteration i.e., tan'(2^-i)
+input sign,   //sign bit needed to propogate along with the input
 output reg  signed [19:0]xn,yn,zn,tn,
 output reg sign_out
 );
