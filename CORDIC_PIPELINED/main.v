@@ -19,6 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 /*
+//20 bit with registers not inserted into the stage, but in between the stages
 module main(
 input clk,reset,
 input signed [19:0]g,
@@ -83,7 +84,7 @@ end
 endmodule
 */
 
-//=============================20bit Complete stage ======================================
+//=============================20bit Complete stage (with the registers inside the stage)======================================
 module main(
 input clk,reset,
 input signed [19:0]g,
@@ -135,7 +136,7 @@ end
 endmodule
 
 /*
-================================20bit===============================================
+================================20bit (without clock and reset passed to the stage)===============================================
 module main(
 input clk,reset,
 input signed [19:0]g,
@@ -327,7 +328,7 @@ endmodule
 */
 
 /*
-=========================32 bit size============================================
+=========================32 bit size (without clk and reset passed to the stage)============================================
 
 
 module main(
