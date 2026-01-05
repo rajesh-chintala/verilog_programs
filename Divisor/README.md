@@ -136,3 +136,5 @@ the datapath during the integer division operation.
 This FSM implements a **multi-cycle repeated subtraction division algorithm**
 with explicit sequencing and deterministic control.
 
+<img width="1621" height="863" alt="image" src="https://github.com/user-attachments/assets/cf72b6d6-f5c7-474b-9636-f182baa0329f" />
+
