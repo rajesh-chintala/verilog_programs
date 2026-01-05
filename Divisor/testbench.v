@@ -24,41 +24,43 @@ module div_tb;
 reg  [15:0] data_in;
 reg  clk, start;
 wire done;
-wire [15:0] bout;
+wire [15:0] cout;
 wire lt, gt, eq;
-wire [15:0] w;
+wire [15:0] mux_out;
 
 division DP (
-    .ldp(ldp), .lda(lda), .ldb(ldb), .ldc(ldc),
+    .ldp(ldp), .ldb(ldb), .lda(lda), .ldc(ldc),
     .inc(inc), .sel(sel), .clk(clk),
     .data_in(data_in),
     .lt(lt), .gt(gt), .eq(eq),
-    .w(w), .bout(bout)
+    .mux_out(mux_out), .cout(cout)
 );
 
 controlpathD1 CP (
-    .ldb(ldb), .lda(lda), .ldp(ldp), .ldc(ldc),
-    .inc(inc), .sel(sel), .done(done),
     .lt(lt), .gt(gt), .eq(eq),
-    .start(start), .clk(clk)
+    .start(start), .clk(clk),
+    .ldp(ldp), .ldb(ldb), .lda(lda), .ldc(ldc),
+    .inc(inc), .sel(sel), .done(done)
 );
 
-initial clk = 0;
+initial begin
+clk = 0;
+#6 start = 1'b1;
+#500
+$finish;
+end
+
 always #5 clk = ~clk;
 
 initial begin
-    start = 0;
-    data_in = 0;
-    #10 data_in = 16'd4;   // divisor
-    #10 data_in = 16'd25;  // dividend
-    #10 start = 1;
-    #200 $finish;
+    #10 data_in = 16'd3;   // divisor
+    #20 data_in = 16'd4;  // dividend
 end
 
 initial begin
     $monitor($time,
         " Remainder=%d Quotient=%d",
-        w, bout);
+        mux_out, cout);
 end
 
 endmodule
