@@ -31,13 +31,6 @@ always @(posedge clk) begin
 end
 endmodule
 
-module add (
-    output [15:0] out,
-    input  [15:0] in1, [15:0] in2
-);
-assign out = in1 + in2;
-endmodule
-
 module compare (
   input  [15:0] in1, in2,
     output reg lt, gt, eq
@@ -75,7 +68,7 @@ module cntrup (
     input  [15:0] din,
     input  ldc,  clk,  inc
 );
-always @(posedge clk) begin
+always @( posedge clk) begin
     if (ldc)
         dout <= din;
     else if (inc)
@@ -84,29 +77,32 @@ end
 endmodule
 
 module division (
-    input  ldp, lda, ldb, ldc, inc, sel, clk, 
+    input  ldp, ldb, lda, ldc, inc, sel, clk, 
     input  [15:0] data_in,
     output lt, gt, eq,
-    output [15:0] w, bout
+    output [15:0] mux_out, cout
 );
 
-wire [15:0] dividend, divisor, acc, sub_out;
+wire [15:0] dividend, divisor, acc, sub_out, bus;
 
-assign w = sel ? acc : dividend;
+assign bus = data_in;
 
-PIPO reg_divisor (divisor, data_in, ldb, 1'b0, clk);
-PIPO reg_dividend(dividend, data_in, ldp, 1'b0, clk);
-PIPO reg_acc     (acc, sub_out, lda, 1'b0, clk);
+PIPO reg_divisor (divisor, bus, ldb, 1'b0, clk);
+PIPO reg_dividend(dividend, bus, ldp, 1'b0, clk);
 
-compare cmp (w, divisor, lt, gt, eq);
-sub s1 (w, divisor, sub_out);
-cntrup quotient (bout, 16'b0, ldc, clk, inc);
+mux multipler(dividend, sub_out, sel, mux_out);
+
+PIPO reg_acc     (acc, mux_out, lda, 1'b0, clk);
+
+compare cmp (acc, divisor, lt, gt, eq);
+sub s1 (acc, divisor, sub_out);
+cntrup quotient (cout, 16'b0, ldc, clk, inc);
 
 endmodule
 
 module controlpathD1 (
-    output reg ldb,  lda, ldp, ldc inc, sel, done,
-    input  lt,  gt,  eq,  start,  clk
+    input  lt,  gt,  eq,  start,  clk, 
+    output reg  ldp, ldb,  lda, ldc, inc, sel, done
 );
 
 reg [2:0] state;
@@ -117,19 +113,17 @@ parameter s0 = 3'd0,
           s3 = 3'd3,
           s4 = 3'd4,
           s5 = 3'd5,
-          s6 = 3'd6,
-          s7 = 3'd7;
+          s6 = 3'd6;
 
 always @(posedge clk) begin
     case (state)
         s0: if (start) state <= s1;
         s1: state <= s2;
         s2: state <= s3;
-        s3: state <= s4;
+        s3: state <= (~lt)? s4: s6;
         s4: state <= s5;
-        s5: state <= s6;
-        s6: state <= gt ? s4 : s7;
-        s7: state <= s7;
+        s5: state <= s3;
+        s6: state <= s6;
         default: state <= s0;
     endcase
 end
@@ -139,11 +133,10 @@ always @(*) begin
 
     case (state)
         s0: ldc = 1;
-        s1: ldb = 1;
-        s2: ldp = 1;
-        s3: lda = 1;
-        s4: begin lda = 1; sel = 1; inc = 1; end
-        s7: done = 1;
+        s1: ldp = 1;
+        s2: begin ldb = 1; lda = 1; end
+        s4: begin lda = 1; sel =1; inc = 1; end
+        s6: begin done = 1; end
     endcase
 end
 
