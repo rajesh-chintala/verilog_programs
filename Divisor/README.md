@@ -52,6 +52,9 @@ clearly separated blocks: the **Datapath** and the **Control Path**.
 This separation allows arithmetic operations and control sequencing to be
 designed, analyzed, and verified independently.
 
+<img width="796" height="1024" alt="image" src="https://github.com/user-attachments/assets/a92dd180-85df-4c79-b1ec-1fe8ee38bd26" />
+
+
 The **Datapath** contains all hardware elements responsible for data storage,
 arithmetic computation, and comparison.
 The **Control Path** is implemented as a Finite State Machine (FSM) that generates
@@ -72,40 +75,46 @@ control signals to coordinate datapath operations across clock cycles.
 
 The control path observes comparator outputs from the datapath and decides
 whether to continue subtraction or terminate the division process.
+
 ## FSM States and Control Signal Mapping
 
-The control path is implemented as a Finite State Machine (FSM) with
-**3-bit encoded states (s0–s7)**.
-Each state asserts a specific combination of control signals to drive
-the datapath during the integer division operation.
+The control path is implemented as a **3-bit Finite State Machine (FSM)**.
+Each state generates a specific set of control signals that coordinate datapath
+operations for the repeated-subtraction division algorithm.
+
+<img width="958" height="322" alt="b695e6825907b6fecbba032de955d104_Untitled" src="https://github.com/user-attachments/assets/746d6393-3c8b-4892-9106-f53cb75991c1" />
+
+
+The FSM uses **seven states (s0–s6)**. All control signals are deasserted by
+default and asserted only in the states where they are required.
+
+---
 
 ### FSM State Encoding
 
 | State | Binary | Description |
 |------|--------|-------------|
-| s0 | 000 | Idle / Initialization state |
-| s1 | 001 | Load divisor |
-| s2 | 010 | Load dividend |
-| s3 | 011 | Initial subtraction preparation |
+| s0 | 000 | Initialization / Idle state |
+| s1 | 001 | Load dividend |
+| s2 | 010 | Load divisor and initialize accumulator |
+| s3 | 011 | Comparison state |
 | s4 | 100 | Subtract and increment quotient |
-| s5 | 101 | Intermediate state |
-| s6 | 110 | Comparison and loop decision |
-| s7 | 111 | Done state |
+| s5 | 101 | Loop-back state |
+| s6 | 110 | Done state |
 
 ---
 
 ### FSM Control Signal Table
 
-| State | lda | ldb | ldp | sel | inc | ldc | done | Datapath Operation |
+| State | lda | ldb | ldp | ldc | sel | inc | done | Datapath Operation |
 |------|-----|-----|-----|-----|-----|-----|------|-------------------|
-| s0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | Reset quotient counter |
-| s1 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | Load divisor |
-| s2 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | Load dividend |
-| s3 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | Load initial value into accumulator |
-| s4 | 1 | 0 | 0 | 1 | 1 | 0 | 0 | Subtract divisor and increment quotient |
-| s5 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | Hold datapath values |
-| s6 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | Evaluate comparator output |
-| s7 | 0 | 0 | 0 | 1 | 0 | 0 | 1 | Division complete |
+| s0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | Reset quotient counter |
+| s1 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | Load dividend |
+| s2 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | Load divisor and accumulator |
+| s3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Compare accumulator and divisor |
+| s4 | 1 | 0 | 0 | 0 | 1 | 1 | 0 | Subtract divisor and increment quotient |
+| s5 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Loop-back / pipeline state |
+| s6 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | Division complete |
 
 ---
 
@@ -116,25 +125,28 @@ the datapath during the integer division operation.
 | s0 | `start = 1` | s1 |
 | s1 | — | s2 |
 | s2 | — | s3 |
-| s3 | — | s4 |
+| s3 | `lt = 0` | s4 |
+| s3 | `lt = 1` | s6 |
 | s4 | — | s5 |
-| s5 | — | s6 |
-| s6 | `gt = 1` | s4 |
-| s6 | `gt = 0` | s7 |
-| s7 | — | s7 |
+| s5 | — | s3 |
+| s6 | — | s6 |
 
 ---
 
 ### FSM Behavior Summary
 
-- The FSM initializes the quotient counter in **s0**.
-- Operand loading is performed in **s1 (divisor)** and **s2 (dividend)**.
-- Subtraction and quotient increment occur in **s4**.
-- The loop is controlled in **s6** using the comparator output `gt`.
-- When the dividend becomes smaller than the divisor, the FSM transitions to **s7** and asserts `done`.
+- **s0** initializes the quotient counter using `ldc`.
+- **s1** loads the dividend into the datapath.
+- **s2** loads the divisor and initializes the accumulator.
+- **s3** evaluates the comparison between accumulator and divisor.
+- **s4** performs subtraction and increments the quotient.
+- **s5** provides a loop-back transition to re-enter comparison.
+- **s6** asserts `done` and holds the final quotient and remainder stable.
 
-This FSM implements a **multi-cycle repeated subtraction division algorithm**
-with explicit sequencing and deterministic control.
+This FSM implements a **multi-cycle integer division algorithm** using
+repeated subtraction, with clear separation between datapath execution
+and control sequencing.
 
-<img width="1621" height="863" alt="image" src="https://github.com/user-attachments/assets/cf72b6d6-f5c7-474b-9636-f182baa0329f" />
-
+## Notes:
+---
+- Remember there are both Asynchronous and Synchronous inputs present as control signals. Synchronous signals wait for the clock to come. So they are effecting only in the next cycle. Thus some empty states had been included in the FSM. Asynchronous signals appy as usual in the same clock period.
