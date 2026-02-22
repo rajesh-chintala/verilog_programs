@@ -209,6 +209,7 @@ endmodule
 ```
 
 Simulation Results:
+<img width="1064" height="700" alt="image" src="https://github.com/user-attachments/assets/c96433eb-7720-4472-bd89-985af54086db" />
 
 Note Points:
 
@@ -322,3 +323,9 @@ end
 
 endmodule
 ```
+
+Simulation:
+<img width="1073" height="694" alt="image" src="https://github.com/user-attachments/assets/39dab442-1a02-4c91-acd6-5664f117e2d4" />
+<img width="1076" height="701" alt="image" src="https://github.com/user-attachments/assets/f6fd5e3d-daac-4e6a-9caf-c34f12d6f468" />
+
+
