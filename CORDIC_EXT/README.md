@@ -1,3 +1,6 @@
+<img width="1625" height="873" alt="image" src="https://github.com/user-attachments/assets/3bc19ff2-1cf8-4f2e-9c84-06e6112e9a41" />
+
+
 A **Redundant Number System (RNS)** is a number representation technique in which **multiple digit combinations can represent the same numeric value**. This intentional redundancy eliminates long carry chains during arithmetic operations, making computations **faster and more parallelizable** — a major advantage in **VLSI design, high-speed adders, and digital signal processing (DSP)**.
 
 ---
