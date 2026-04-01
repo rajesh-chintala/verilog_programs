@@ -5,6 +5,7 @@
 The **CORDIC (COordinate Rotation DIgital Computer)** algorithm is an efficient method for computing trigonometric and inverse trigonometric functions using only **simple additions and bit-shifts**. Instead of performing a single large rotation, it breaks the process down into a series of **small microrotations**.
 
 #### 1. Fundamental Rotation Equations
+
 The basic mathematical framework for CORDIC microrotations is defined by the following equations:
 *   $X_{i+1} = X_i - \delta_i Y_i 2^{-i}$
 *   $Y_{i+1} = Y_i + \delta_i X_i 2^{-i}$
