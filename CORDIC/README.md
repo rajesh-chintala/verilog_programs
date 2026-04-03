@@ -74,6 +74,55 @@ After $M$ iterations, the final angle $\theta$ is determined as follows:
 *   **High Accuracy:** Compensates for gain through pre-scaling ($A'_m$) and precise approximations.
 *   **Efficient:** Bypasses initial iterations to reduce total clock cycles.
 
+---
+
+## 7. Implementation Details: Fixed-Point Arithmetic
+To maintain the "least hardware" requirement mentioned in the sources, this project utilizes **Fixed-Point Notation (Q2.18 format)**.
+
+*   **Hardware Compatibility:** Since the algorithm relies on bit-shifts and additions rather than floating-point units, fixed-point arithmetic is the natural choice for digital hardware implementation.
+*   **Precision:** The Q2.18 format provides 2 bits for the integer part and 18 bits for the fractional part. This high fractional precision is essential for maintaining the accuracy of the iterative updates for $x, y,$ and $t$.
+*   **Bit-Shift Alignment:** The hardware "trick" of using $2^{-i}$ for rotations aligns perfectly with fixed-point shifts, allowing the iterative logic to be executed with high speed and low power consumption.
+
+*(Note: The specific Q2.18 format is not mentioned in the sources but is a standard method for implementing the bit-shift logic described in the text.)*
+
+## 8. Development & Simulation (Python)
+Python was used as the primary tool for the development and simulation phase of this project to bridge the gap between theory and hardware.
+
+*   **Theory Understanding:** Python scripts were used to simulate the $M$ iterations of the algorithm, allowing for a step-by-step visualization of how the vector $(x, y)$ converges toward the target value $t_0$.
+*   **Pre-calculation:** Python is used to pre-calculate the following constant values required by the hardware:
+    *   **The Lookup Table:** Pre-computing $\tan^{-1}(2^{-i})$ values for each iteration $i$.
+    *   **The Gain Constant ($A'_m$):** Calculating the high-accuracy product $A'_m = \prod_{i=0}^{M-1} \frac{1 + 2^{-2i-1}}{\sqrt{1 + 2^{-2i}}}$ used for vector initialization.
+*   **Validation:** By simulating the domain mapping logic—such as reflecting negative input angles for arccosine ($\theta = 180^\circ - z_m$)—we ensured the algorithm produces mathematically sound results across the entire $[-1, 1]$ input range.
+
+*(Note: While the algorithmic logic is detailed in the sources, the use of Python for simulation and pre-calculation is an external project feature and should be independently verified.)*
+
+---
+
+To incorporate your recent findings into the GitHub repository, I have added a section on **Precision and Error Analysis**. This section highlights the limitations of fixed-point implementations discovered during your Python simulations and explains why transitioning to floating-point formats may be necessary for high-bit-width applications.
+
+***
+
+## 9. Critical Observations: Precision and Error Analysis
+
+Based on Python simulations utilizing 100 decimal places of precision, several key observations were made regarding the convergence and saturation of the gain constant $A'_m$ relative to the vector coordinates ($x$).
+
+### **Saturation and Bit-Width Comparison**
+The point at which the initial coordinate $x$ and the pre-calculated gain $A'_m$ (defined in the sources as the product of iterative gain corrections) saturate depends heavily on the bit-size of the variables:
+
+*   **20-bit size:** The coordinate $x$ saturates quickly at $m=3$ (Value: `20'd 186611`), whereas $A'_m$ continues to vary until $m=10$.
+*   **32-bit size:** The coordinate $x$ reaches saturation at $m=7$ (Value: `32'd 764356231`), but $A'_m$ continues to change until $m=12$.
+*   **256-bit size:** At this high precision, both $x$ and $A'_m$ saturate at $m=12$.
+
+### **The Case for Floating-Point Format**
+While the algorithm is designed for "least hardware" using bit-shifts and additions, these observations reveal a significant limitation of fixed-point notation in specific contexts:
+
+1.  **Exponential Decay of Gain Changes:** Because the incremental changes to $A'_m$ decrease exponentially with each iteration, they eventually fall below the resolution of standard fixed-point nets in hardware (such as Verilog variables). 
+2.  **Verilog vs. Python Precision:** Even when Python simulations use 100 decimal places to maintain accuracy, the very small changes in $A'_m$ do not effectively impact fixed-point nets in Verilog once they fall below the least significant bit. 
+3.  **Resulting Error:** In cases where $A'_m$ has not yet saturated but $x$ has, the fixed-point implementation fails to capture the remaining precision required for a "highly accurate" result.
+
+**Conclusion:** For applications requiring extreme precision (such as those approaching 256-bit parity), **floating-point formats** are recommended. This ensures that the exponentially decreasing changes in $A'_m$ are preserved, preventing the loss of accuracy that occurs when these small values are truncated in a fixed-point environment.
+
+
 <img width="1235" height="542" alt="Screenshot 2025-10-24 231532" src="https://github.com/user-attachments/assets/33b0e2b8-6479-464b-bf23-a23917df95f8" />
 
 <img width="1490" height="849" alt="Screenshot 2025-10-24 234217" src="https://github.com/user-attachments/assets/56aac2e4-4fff-49a8-b307-0638ed08b2cc" />
