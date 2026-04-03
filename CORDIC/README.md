@@ -1,39 +1,79 @@
 # CORDIC Based Computation of Arcsine and Arccosine functions on FPGA
 
-The fourth image provides a **comprehensive summary** of the CORDIC algorithm designed for arcsine and arccosine, focusing on achieving highly accurate results with minimal hardware. 
+## 1. Introduction
+The primary objective of this algorithm is to determine an unknown angle $\theta$ given a target value $t_0$, where $t_0 = \cos(\theta)$ or $t_0 = \sin(\theta)$. The algorithm is specifically designed to work with **minimal hardware** by replacing complex multiplications with iterative bit-shifting and addition.
 
-### **1. Input and Objective**
-The algorithm starts with a **given value $g_0 \in [-1, 1]$**, which represents either $\cos(\theta)$ or $\sin(\theta)$. The goal is to find the angle $\theta$.
+## 2. Theoretical Foundation
+The CORDIC algorithm operates by rotating an initial vector through a series of specific angles $\theta_i$. 
 
-### **2. Pre-processing: Domain Reduction**
-To ensure the algorithm converges correctly, the first step is to **take the absolute value** of the input:
-*   $t_0 = |g_0| \in$.
-*   This reduces the convergence domain to $[0, \pi/2]$.
+### Rotation Equations
+The standard vector rotation is defined by:
+- $x_{i+1} = x_i \cos \theta_i - y_i \sin \theta_i$
+- $y_{i+1} = y_i \cos \theta_i + x_i \sin \theta_i$
 
-### **3. Optimized Initialization**
-The algorithm bypasses the first iteration ($i=0$) by using a **pre-calculated initial vector** to save hardware cycles. This vector is scaled by an accuracy constant to maintain high precision:
-*   **Initial Coordinates:**
-    *   $x_1 = A'_m \cos(\tan^{-1}(2^{-0}))$
-    *   $y_1 = A'_m \sin(\tan^{-1}(2^{-0}))$
-*   **Initial Angle:** $z_1 = \tan^{-1}(2^{-0})$
-*   **Accuracy Constant ($A'_m$):** $A'_m = \prod_{i=0}^{M-1} \frac{1 + 2^{-2i-1}}{\sqrt{1 + 2^{-2i}}}$.
+### The CORDIC "Trick"
+To eliminate the need for multipliers, we choose rotation angles such that:
+$$\tan \theta_i = \pm 2^{-i} = d_i 2^{-i}$$
+where $d_i \in \{1, -1\}$ represents the **direction of rotation**. This substitution allows the hardware to perform rotations using only **bit-shifts** ($2^{-i}$).
 
-### **4. Iterative Rotation Process**
-The vector is rotated for each iteration $i$ from $1$ to $m-1$. The algorithm is optimized for hardware by assuming $\theta_i = \tan^{-1}(2^{-i})$, which **converts real-time multiplications into simple bit shifts**. The update equations are:
-*   **Coordinates:** $x_{i+1} = x_i - d_i y_i 2^{-i}$ and $y_{i+1} = y_i + d_i x_i 2^{-i}$.
-*   **Angle:** $z_{i+1} = z_i + d_i \tan^{-1}(2^{-i})$.
-*   **Target Magnitude:** $t_{i+1} = t_i + t_i 2^{-2i-1}$.
+---
 
-### **5. Resultant Angle and Final Calculation**
-After $m$ iterations, **$z_m$ is identified as the resultant angle**. The final angle $\theta$ is determined based on the original input $g_0$:
+## 3. Hardware Optimization & Gain Management
+Every rotation increases the magnitude of the vector by a gain factor $A_i = \sqrt{1 + 2^{-2i}}$.
 
-*   **For Positive Inputs ($t_0 = g_0$):** 
-    *   $\theta = z_m$.
-*   **For Negative Inputs ($t_0 = -g_0$):**
-    *   **Arcsine ($g_0 = \sin\theta$):** $\theta = -z_m$.
-    *   **Arccosine ($g_0 = \cos\theta$):** $\theta = 180^\circ - z_m$.
+### Gain Approximation
+To avoid square root calculations in real-time, the gain is approximated as:
+$$\sqrt{1 + 2^{-2i}} \approx 1 + 2^{-2i-1}$$
+**Justification:** Squaring both sides shows that $1 + 2^{-2i} \approx 1 + 2^{-2i} + 2^{-4i-2}$. Since $2^{-4i-2} \ll 2^{-2i}$ for all $i > 0$, the error is negligible.
 
-This Repository consists of 
+### Pre-Scaled Initialization
+To maintain high accuracy without real-time division, the initial vector is pre-scaled by the total gain $A'_m$:
+- $x_0 = A'_m \times 1$
+- $y_0 = A'_m \times 0$
+- $z_0 = 0^\circ$
+
+Where the total gain is:
+$$A'_m = \prod_{i=0}^{M-1} \frac{1 + 2^{-2i-1}}{\sqrt{1 + 2^{-2i}}}$$
+
+---
+
+## 4. Iteration Logic
+The algorithm proceeds through $M$ iterations. To save hardware cycles, the **0th iteration can be bypassed** by pre-calculating initial values for $x_1, y_1,$ and $z_1$.
+
+### Update Equations
+For each iteration $i$ from 1 to $M-1$:
+1. **$x_{i+1} = x_i - d_i y_i 2^{-i}$**
+2. **$y_{i+1} = y_i + d_i x_i 2^{-i}$**
+3. **$z_{i+1} = z_i + d_i \tan^{-1}(2^{-i})$** (Angle from a lookup table)
+4. **$t_{i+1} = t_i + t_i 2^{-2i-1}$** (Updating target magnitude)
+
+### Decision Logic for Direction ($d_i$)
+The rotation direction is determined by comparing the current coordinates to the target value $t_i$:
+- **For Arccosine:** $d_i = 1$ if $x_i > t_i$; otherwise $d_i = -1$.
+- **For Arcsine:** $d_i = 1$ if $y_i < t_i$; otherwise $d_i = -1$.
+
+---
+
+## 5. Domain Mapping and Final Output
+The algorithm handles input values $g_0 \in [-1, 1]$ by initially operating on the absolute value $t_0 = |g_0|$ to ensure convergence within the domain $[0, \pi/2]$.
+
+After $M$ iterations, the final angle $\theta$ is determined as follows:
+
+| Input Condition | Final Angle Calculation | Function |
+| :--- | :--- | :--- |
+| $g_0 \geq 0$ | $\theta = z_m$ | Both |
+| $g_0 < 0$ | $\theta = -z_m$ | $\sin^{-1}(g_0)$ |
+| $g_0 < 0$ | $\theta = 180^\circ - z_m$ | $\cos^{-1}(g_0)$ |
+
+
+
+---
+
+## 6. Summary of Benefits
+*   **Multiplier-less:** Uses only bit-shifts and additions.
+*   **High Accuracy:** Compensates for gain through pre-scaling ($A'_m$) and precise approximations.
+*   **Efficient:** Bypasses initial iterations to reduce total clock cycles.
+
 <img width="1235" height="542" alt="Screenshot 2025-10-24 231532" src="https://github.com/user-attachments/assets/33b0e2b8-6479-464b-bf23-a23917df95f8" />
 
 <img width="1490" height="849" alt="Screenshot 2025-10-24 234217" src="https://github.com/user-attachments/assets/56aac2e4-4fff-49a8-b307-0638ed08b2cc" />
