@@ -1,5 +1,38 @@
 # CORDIC Based Computation of Arcsine and Arccosine functions on FPGA
 
+The fourth image provides a **comprehensive summary** of the CORDIC algorithm designed for arcsine and arccosine, focusing on achieving highly accurate results with minimal hardware. 
+
+### **1. Input and Objective**
+The algorithm starts with a **given value $g_0 \in [-1, 1]$**, which represents either $\cos(\theta)$ or $\sin(\theta)$. The goal is to find the angle $\theta$.
+
+### **2. Pre-processing: Domain Reduction**
+To ensure the algorithm converges correctly, the first step is to **take the absolute value** of the input:
+*   $t_0 = |g_0| \in$.
+*   This reduces the convergence domain to $[0, \pi/2]$.
+
+### **3. Optimized Initialization**
+The algorithm bypasses the first iteration ($i=0$) by using a **pre-calculated initial vector** to save hardware cycles. This vector is scaled by an accuracy constant to maintain high precision:
+*   **Initial Coordinates:**
+    *   $x_1 = A'_m \cos(\tan^{-1}(2^{-0}))$
+    *   $y_1 = A'_m \sin(\tan^{-1}(2^{-0}))$
+*   **Initial Angle:** $z_1 = \tan^{-1}(2^{-0})$
+*   **Accuracy Constant ($A'_m$):** $A'_m = \prod_{i=0}^{M-1} \frac{1 + 2^{-2i-1}}{\sqrt{1 + 2^{-2i}}}$.
+
+### **4. Iterative Rotation Process**
+The vector is rotated for each iteration $i$ from $1$ to $m-1$. The algorithm is optimized for hardware by assuming $\theta_i = \tan^{-1}(2^{-i})$, which **converts real-time multiplications into simple bit shifts**. The update equations are:
+*   **Coordinates:** $x_{i+1} = x_i - d_i y_i 2^{-i}$ and $y_{i+1} = y_i + d_i x_i 2^{-i}$.
+*   **Angle:** $z_{i+1} = z_i + d_i \tan^{-1}(2^{-i})$.
+*   **Target Magnitude:** $t_{i+1} = t_i + t_i 2^{-2i-1}$.
+
+### **5. Resultant Angle and Final Calculation**
+After $m$ iterations, **$z_m$ is identified as the resultant angle**. The final angle $\theta$ is determined based on the original input $g_0$:
+
+*   **For Positive Inputs ($t_0 = g_0$):** 
+    *   $\theta = z_m$.
+*   **For Negative Inputs ($t_0 = -g_0$):**
+    *   **Arcsine ($g_0 = \sin\theta$):** $\theta = -z_m$.
+    *   **Arccosine ($g_0 = \cos\theta$):** $\theta = 180^\circ - z_m$.
+
 This Repository consists of 
 <img width="1235" height="542" alt="Screenshot 2025-10-24 231532" src="https://github.com/user-attachments/assets/33b0e2b8-6479-464b-bf23-a23917df95f8" />
 
